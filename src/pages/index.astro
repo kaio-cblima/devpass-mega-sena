@@ -1,0 +1,199 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const numbers = []
+for(let i = 1;i <= 60;i++) numbers.push(i)
+---
+
+<Layout title="Mega-Sena - kaiolima.dev">
+	<div class="sm:py-6 min-h-full min-w-full bg-slate-200 flex justify-center">
+		<main class="container md:p-6 flex flex-col bg-white items-center justify-center rounded-sm shadow-md">
+			<h1 class="text-black font-bold text-4xl mt-4 mb-8">Gerador Mega-Sena</h1>
+			<div class="w-full mx-16 flex flex-col items-center shadow-lg bg-slate-100">
+				<div class="w-full bg-green-700 text-center px-8 py-6">Escolha os números que quer jogar:</div>
+				<div class="flex flex-wrap gap-1 justify-center px-8 py-6">
+					{
+						numbers.map(n => {
+							return (
+								<div class="ball cursor-pointer" id={n.toString()} data-select-ball>{n}</div>
+							)
+						})
+					}
+				</div>
+				<div class="w-full bg-green-700 text-center px-8 py-6 flex justify-center">
+					<div class="flex flex-col items-center">
+						<span class="text-lg">Números Escolhidos:</span>
+						<span class="font-medium text-4xl" id="ball-amount">0</span>
+					</div>
+				</div>
+			</div>
+			<div class="w-full py-8 mt-12 flex flex-col items-center bg-green-700">
+				<button class="px-8 py-3 rounded-full bg-green-900 hover:bg-green-950" id="generate">Gerar Números</button>
+				<div class="flex flex-wrap gap-1 justify-center py-6">
+					<div class="gball">
+						<div class="inner-gball">?</div>
+					</div>
+					<div class="gball">
+						<div class="inner-gball">?</div>
+					</div>
+					<div class="gball">
+						<div class="inner-gball">?</div>
+					</div>
+					<div class="gball">
+						<div class="inner-gball">?</div>
+					</div>
+					<div class="gball">
+						<div class="inner-gball">?</div>
+					</div>
+					<div class="gball">
+						<div class="inner-gball">?</div>
+					</div>
+				</div>
+			</div>
+		</main>
+	</div>
+</Layout>
+<style>
+	.ball {
+		background-color: rgb(21 128 61);
+		border-radius: 100%;
+		display: grid;
+		place-items: center;
+		width: 3rem;
+		height: 3rem;
+	}
+
+	.ball.active {
+		background-color: #fcba03;
+		color: rgb(21 128 61);
+	}
+
+	.gball {
+		position: relative;
+		border-radius: 100%;
+		border: 3px solid white;
+		width: 4rem;
+		height: 4rem;
+		font-size: 1.5rem;
+    	line-height: 2rem;
+		overflow-y: hidden;
+	}
+
+	.gball.win {
+		border: 3px solid #fcba03;
+	}
+
+	.inner-gball {
+		position: absolute;
+		top: 25%;
+		width: min-content;
+		margin: 0 auto;
+		left: 0;
+		right: 0;
+	}
+
+	.gball.animated-0 > .inner-gball {
+		animation: gball-animation 250ms linear infinite;
+	}
+
+	.gball.animated-1 > .inner-gball {
+		animation: gball-animation 250ms linear 100ms infinite;
+	}
+
+	.gball.animated-2 > .inner-gball {
+		animation: gball-animation 250ms linear 300ms infinite;
+	}
+
+	.gball.animated-3 > .inner-gball {
+		animation: gball-animation 250ms linear 400ms infinite;
+	}
+	
+	.gball.animated-4 > .inner-gball {
+		animation: gball-animation 250ms linear 500ms infinite;
+	}
+
+	.gball.animated-5 > .inner-gball {
+		animation: gball-animation 250ms linear 600ms infinite;
+	}
+
+	@keyframes gball-animation {
+		from {
+			top: -45%;
+		}
+		to {
+			top: 90%;
+		}
+	}
+</style>
+<script>
+	const SHUFFLE_DELAY = 750
+
+	const balls = document.querySelectorAll("[data-select-ball]")
+	const gballs = document.querySelectorAll(".gball")
+
+	const getAllActiveBalls = () => document.querySelectorAll(".ball.active")
+
+	function updateNumberCounter() {
+		const amount = getAllActiveBalls().length
+		const span = document.querySelector("#ball-amount")
+		if(span) span.innerHTML = amount.toString()
+	}
+
+	balls.forEach(btn => {
+		btn.addEventListener("click", (e) => {
+			if(btn.classList.contains("active")) btn.classList.remove("active")
+			else btn.classList.add("active")
+			updateNumberCounter()
+		})
+	})
+
+	let generating = false
+	document.querySelector("#generate")!.addEventListener("click", () => {
+		if(generating) return
+		generating = true
+		let sorted: number[] = []
+		for(let g = 0;g < 6;g++) {
+			const gball = gballs.item(g)
+			gball.classList.add(`animated-${g}`)
+			gball.classList.remove("win")
+			
+			let n = -1
+			do {
+				n = Math.floor(Math.random() * 60) + 1 
+			} while(sorted.includes(n))
+			sorted.push(n)
+		}
+		sorted = sorted.sort((a, b) => a - b)
+		let t = 0
+
+
+		const interval = setInterval(() => {
+			t += 250
+			if(t < SHUFFLE_DELAY) (gballs.item(0).firstChild as Element).innerHTML = (Math.floor(Math.random() * 60 + 1)).toString()
+			if(t < SHUFFLE_DELAY * 2) (gballs.item(1).firstChild as Element).innerHTML = (Math.floor(Math.random() * 60 + 1)).toString()
+			if(t < SHUFFLE_DELAY * 3) (gballs.item(2).firstChild as Element).innerHTML = (Math.floor(Math.random() * 60 + 1)).toString()
+			if(t < SHUFFLE_DELAY * 4) (gballs.item(3).firstChild as Element).innerHTML = (Math.floor(Math.random() * 60 + 1)).toString()
+			if(t < SHUFFLE_DELAY * 5) (gballs.item(4).firstChild as Element).innerHTML = (Math.floor(Math.random() * 60 + 1)).toString()
+			if(t < SHUFFLE_DELAY * 6) (gballs.item(5).firstChild as Element).innerHTML = (Math.floor(Math.random() * 60 + 1)).toString()
+
+			for(let g = 0;g < 6;g++) {
+				if(t % (SHUFFLE_DELAY + (g * SHUFFLE_DELAY)) === 0) {
+					const gball = gballs.item(g)
+					gball.classList.remove(`animated-${g}`);
+					(gball.firstChild as Element).innerHTML = sorted[g].toString()
+					for(const ball of getAllActiveBalls()) {
+						if(ball.innerHTML === sorted[g].toString()) {
+							gball.classList.add("win")
+							break
+						}
+					}
+				}
+			}
+
+			if(t === SHUFFLE_DELAY * 6) {
+				clearInterval(interval)
+				generating = false
+			}
+		}, 250)
+	})
+</script>
